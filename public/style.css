@@ -53,6 +53,10 @@ code {
   padding: 1rem 2rem;
 }
 
+#userstories li {
+  margin: 1rem 0;
+}
+
 #testui input, button, textarea {
   margin: 1rem;
 }
