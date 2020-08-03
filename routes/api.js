@@ -8,34 +8,44 @@
 
 'use strict';
 
-var expect = require('chai').expect;
-var MongoClient = require('mongodb');
-var ObjectId = require('mongodb').ObjectID;
-
-const CONNECTION_STRING = process.env.DB; //MongoClient.connect(CONNECTION_STRING, function(err, db) {});
+const expect = require('chai').expect;
+const mongodb = require('mongodb');
+const mongo = mongodb.MongoClient;
+const ObjectId = require('mongodb').ObjectID;
 
 module.exports = function (app) {
+  let db;
+  mongo.connect(process.env.MONGO_URI, (err, client) => {
+        if (err) {
+          console.log("Database error: " + err);
+        } else {
+          console.log("Successful database connection");
+          db = client.db(process.env.MONGO_DB);
+        }
+      },
+  );
 
   app.route('/api/issues/:project')
-  
-    .get(function (req, res){
-      var project = req.params.project;
-      
-    })
-    
-    .post(function (req, res){
-      var project = req.params.project;
-      
-    })
-    
-    .put(function (req, res){
-      var project = req.params.project;
-      
-    })
-    
-    .delete(function (req, res){
-      var project = req.params.project;
-      
-    });
-    
+
+      .get(function (req, res) {
+        const project = req.params.project;
+        console.log('called get', project)
+      })
+
+      .post(function (req, res) {
+        const project = req.params.project;
+        console.log('called post', project)
+      })
+
+      .put(function (req, res) {
+        const project = req.params.project;
+
+      })
+
+      .delete(function (req, res) {
+        const project = req.params.project;
+
+      });
+
+
 };
