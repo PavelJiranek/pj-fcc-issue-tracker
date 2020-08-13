@@ -13,7 +13,7 @@ const mongodb = require('mongodb');
 const mongo = mongodb.MongoClient;
 const ObjectId = require('mongodb').ObjectID;
 const utils = require('./utils');
-const { newIssueMapper, getIssueFromDbResponse, hasRequiredFields } = utils;
+const { newIssueMapper, getIssueFromDbResponse, hasRequiredFields, updateMapper, handleUpdateError } = utils;
 
 const ISSUES_COLLECTION = "issueTracker.issues";
 
@@ -51,8 +51,30 @@ module.exports = function (app) {
         )
 
         .put(function (req, res) {
-            const project = req.params.project;
+            if (req.body._id) {
+                const updateFields = updateMapper(req.body);
 
+                if (updateFields) {
+                    try {
+                        db.collection(ISSUES_COLLECTION).updateOne(
+                            { _id: { $eq: ObjectId(req.body._id) } },
+                            updateFields,
+                        ).then(r => {
+                                if (r.modifiedCount === 1) {
+                                    res.send('successfully updated')
+                                }
+                            },
+                            () => handleUpdateError(res, req.body._id),
+                        )
+                    } catch {
+                        handleUpdateError(res, req.body._id)
+                    }
+                } else {
+                    res.send('no updated field sent')
+                }
+            } else {
+                handleUpdateError(res, req.body._id)
+            }
         })
 
         .delete(function (req, res) {

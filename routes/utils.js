@@ -1,6 +1,6 @@
 const R = require('ramda');
 const RA = require('ramda-adjunct');
-const { path, pipe, keys, intersection } = R;
+const { path, mapObjIndexed, pipe, keys, intersection, reject, isEmpty, omit } = R;
 const { lengthEq } = RA;
 
 /**
@@ -26,10 +26,38 @@ const hasRequiredFields = body => pipe(
     keys,
     intersection(REQUIRED_FIELDS),
     lengthEq(REQUIRED_FIELDS.length),
-)(body)
+)(body);
+
+const setOpenStringToBool = (val, key) => key === 'open' ? (val !== 'false') : val;
+const getFilledFields = pipe(
+    reject(isEmpty),
+    mapObjIndexed(setOpenStringToBool),
+    omit(['_id']),
+);
+/**
+ *
+ * @param { {_id,issue_title, issue_text, created_by, assigned_to, status_text,open } } body
+ */
+const updateMapper = (body) => {
+    const filledFields = getFilledFields(body);
+
+    return !isEmpty(filledFields) && {
+        $set: {
+            ...filledFields,
+            updated_on: new Date(),
+        },
+    }
+};
+
+const handleUpdateError = (res, issueId) => {
+    res.status(400);
+    res.send(`could not update ${issueId}`)
+}
 
 module.exports = {
     newIssueMapper,
     getIssueFromDbResponse,
     hasRequiredFields,
+    updateMapper,
+    handleUpdateError,
 }
