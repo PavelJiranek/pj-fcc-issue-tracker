@@ -13,7 +13,14 @@ const mongodb = require('mongodb');
 const mongo = mongodb.MongoClient;
 const ObjectId = require('mongodb').ObjectID;
 const utils = require('./utils');
-const { newIssueMapper, getIssueFromDbResponse, hasRequiredFields, updateMapper, handleUpdateError } = utils;
+const {
+    newIssueMapper,
+    getIssueFromDbResponse,
+    hasRequiredFields,
+    updateMapper,
+    handleUpdateError,
+    handleDeleteError,
+} = utils;
 
 const ISSUES_COLLECTION = "issueTracker.issues";
 
@@ -78,10 +85,23 @@ module.exports = function (app) {
         })
 
         .delete(function (req, res) {
-            const project = req.params.project;
-
-        });
-
-
-}
-;
+                if (req.body._id) {
+                    try {
+                        db.collection(ISSUES_COLLECTION).deleteOne(
+                            { _id: { $eq: ObjectId(req.body._id) } },
+                        ).then(r => {
+                                if (r.deletedCount === 1) {
+                                    res.send(`deleted ${req.body._id}`)
+                                }
+                            },
+                            () => handleDeleteError(res, req.body._id),
+                        )
+                    } catch {
+                        handleDeleteError(res, req.body._id)
+                    }
+                } else {
+                    res.send('_id error');
+                }
+            },
+        );
+};

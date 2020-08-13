@@ -13,14 +13,28 @@ const server = require('../server');
 
 chai.use(chaiHttp);
 
-suite('Functional Tests', function() {
-  
-    suite('POST /api/issues/{project} => object with issue data', function() {
-      
-      test('Every field filled in', function(done) {
-       chai.request(server)
+const createIssue = (done) => {
+    chai.request(server)
         .post('/api/issues/test')
         .send({
+            issue_title: 'update test',
+            issue_text: '',
+            created_by: 'Functional Tests - put endpoint',
+        })
+        .end(function (err, res) {
+            done(res.body._id);
+        });
+}
+
+
+suite('Functional Tests', function () {
+
+    suite('POST /api/issues/{project} => object with issue data', function () {
+
+        test('Every field filled in', function (done) {
+            chai.request(server)
+                .post('/api/issues/test')
+                .send({
           issue_title: 'Title',
           issue_text: 'text',
           created_by: 'Functional Test - Every field filled in',
@@ -77,19 +91,6 @@ suite('Functional Tests', function() {
     });
 
     suite('PUT /api/issues/{project} => text', function () {
-
-        const createIssue = (done) => {
-            chai.request(server)
-                .post('/api/issues/test')
-                .send({
-                    issue_title: 'update test',
-                    issue_text: '',
-                    created_by: 'Functional Tests - put endpoint',
-                })
-                .end(function (err, res) {
-                    done(res.body._id);
-                });
-        }
 
         test('No body', function (done) {
             chai.request(server)
@@ -169,11 +170,27 @@ suite('Functional Tests', function() {
     suite('DELETE /api/issues/{project} => text', function () {
 
         test('No _id', function (done) {
-
+            chai.request(server)
+                .delete('/api/issues/test')
+                .send()
+                .end(function (err, res) {
+                    assert.equal(res.text, '_id error');
+                    done();
+                });
         });
 
         test('Valid _id', function (done) {
-
+            createIssue(id =>
+                chai.request(server)
+                    .delete('/api/issues/test')
+                    .send({
+                        _id: id,
+                    })
+                    .end(function (err, res) {
+                        assert.equal(res.text, `deleted ${id}`);
+                        done();
+                    }),
+            );
         });
 
     });

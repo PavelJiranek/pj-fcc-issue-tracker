@@ -50,8 +50,11 @@ const updateMapper = (body) => {
 };
 
 const handleUpdateError = (res, issueId) => {
-    res.status(400);
     res.send(`could not update ${issueId}`)
+}
+
+const handleDeleteError = (res, issueId) => {
+    res.send(`could not delete ${issueId}`)
 }
 
 module.exports = {
@@ -60,4 +63,5 @@ module.exports = {
     hasRequiredFields,
     updateMapper,
     handleUpdateError,
+    handleDeleteError,
 }

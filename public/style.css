@@ -101,9 +101,17 @@ form#newIssue {
   align-items: center;
   width: 360px;
 }
-form#newIssue>button {
+
+form#newIssue > button {
   width: 100%;
 }
-form#newIssue>input, form#newIssue>textarea {
+
+form#newIssue > input, form#newIssue > textarea {
   width: 95%;
+}
+
+#jsonResult {
+  font-size: 1.5rem;
+  color: var(--secondary);
+  margin: 2rem;
 }
