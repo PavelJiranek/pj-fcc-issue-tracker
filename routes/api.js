@@ -8,10 +8,9 @@
 
 'use strict';
 
-const expect = require('chai').expect;
 const mongodb = require('mongodb');
 const mongo = mongodb.MongoClient;
-const ObjectId = require('mongodb').ObjectID;
+const ObjectId = mongodb.ObjectID;
 const utils = require('./utils');
 const {
     newIssueMapper,
@@ -20,6 +19,7 @@ const {
     updateMapper,
     handleUpdateError,
     handleDeleteError,
+    parseQueryFields,
 } = utils;
 
 const ISSUES_COLLECTION = "issueTracker.issues";
@@ -41,8 +41,13 @@ module.exports = function (app) {
 
         .get(function (req, res) {
             const project = req.params.project;
-            const body = req.body;
-            console.log('called get', project, body);
+            const parsedParams = parseQueryFields(req.query);
+
+            db.collection(ISSUES_COLLECTION)
+                .find({ project, ...parsedParams })
+                .sort({ created_on: -1 })
+                .toArray()
+                .then(issues => res.send(issues));
         })
 
         .post((req, res) => {

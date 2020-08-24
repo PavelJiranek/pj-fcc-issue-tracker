@@ -13,13 +13,14 @@ const server = require('../server');
 
 chai.use(chaiHttp);
 
-const createIssue = (done) => {
+const createIssue = (done, issueFields = {}) => {
     chai.request(server)
         .post('/api/issues/test')
         .send({
             issue_title: 'update test',
             issue_text: '',
             created_by: 'Functional Tests - put endpoint',
+            ...issueFields,
         })
         .end(function (err, res) {
             done(res.body._id);
@@ -158,11 +159,38 @@ suite('Functional Tests', function () {
         });
 
         test('One filter', function (done) {
-
+            createIssue(id =>
+                chai.request(server)
+                    .get('/api/issues/test')
+                    .query({
+                        _id: id,
+                    })
+                    .end(function (err, res) {
+                        assert.equal(res.body.length, 1);
+                        assert.equal(res.body[0]._id, id);
+                        done();
+                    }),
+            );
         });
 
         test('Multiple filters (test for multiple fields you know will be in the db for a return)', function (done) {
-
+            const issueFields = {
+                issue_text: `created on ${new Date()}`,
+                status_text: 'testing',
+            };
+            createIssue(id =>
+                    chai.request(server)
+                        .get('/api/issues/test')
+                        .query(issueFields)
+                        .end(function (err, res) {
+                            assert.equal(res.body.length, 1);
+                            assert.equal(res.body[0]._id, id);
+                            assert.equal(res.body[0].issue_text, issueFields.issue_text);
+                            assert.equal(res.body[0].status_text, issueFields.status_text);
+                            done();
+                        }),
+                issueFields,
+            );
         });
 
     });

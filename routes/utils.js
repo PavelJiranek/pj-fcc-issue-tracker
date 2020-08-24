@@ -2,6 +2,8 @@ const R = require('ramda');
 const RA = require('ramda-adjunct');
 const { path, mapObjIndexed, pipe, keys, intersection, reject, isEmpty, omit } = R;
 const { lengthEq } = RA;
+const mongodb = require('mongodb');
+const ObjectId = mongodb.ObjectID;
 
 /**
  *
@@ -28,10 +30,17 @@ const hasRequiredFields = body => pipe(
     lengthEq(REQUIRED_FIELDS.length),
 )(body);
 
-const setOpenStringToBool = (val, key) => key === 'open' ? (val !== 'false') : val;
+const setOpenStringToBool = mapObjIndexed((val, key) => key === 'open' ? (val !== 'false') : val);
+const parseMongoId = mapObjIndexed((val, key) => key === '_id' ?  { $eq: ObjectId(val) } : val);
+
+const parseQueryFields = pipe(
+    setOpenStringToBool,
+    parseMongoId
+)
+
 const getFilledFields = pipe(
     reject(isEmpty),
-    mapObjIndexed(setOpenStringToBool),
+    setOpenStringToBool,
     omit(['_id']),
 );
 /**
@@ -64,4 +73,5 @@ module.exports = {
     updateMapper,
     handleUpdateError,
     handleDeleteError,
+    parseQueryFields,
 }
